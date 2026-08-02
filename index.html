@@ -117,6 +117,25 @@
             position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;
         }
         .modal-close:hover { color: #000; }
+        /* Подсветка нитей при наведении в SVG */
+        .interactive-svg .thread-line { transition: stroke-width 0.2s, opacity 0.2s; cursor: pointer; }
+        .interactive-svg:hover .thread-line { opacity: 0.25; } 
+        .interactive-svg .thread-line:hover { opacity: 1 !important; stroke-width: 9px !important; } 
+
+        /* Окошко всплывающей подсказки со слайдшоу */
+        #knot-tooltip {
+            position: absolute; display: none; background: white; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 10px; z-index: 9999;
+            width: 160px; text-anchor: middle; text-align: center; cursor: pointer; transition: opacity 0.2s;
+            pointer-events: auto;
+        }
+        #knot-tooltip img { width: 100%; height: 130px; object-fit: contain; border-radius: 4px; background: #f3f4f6; }
+        .tooltip-title { font-size: 14px; font-weight: bold; margin-top: 5px; color: var(--primary); }
+        .tooltip-hint { font-size: 11px; color: #6b7280; margin-top: 3px; }
+        
+        /* Интерактивность узлов в SVG */
+        .interactive-knot { cursor: help; }
+        .interactive-knot:hover circle:nth-child(2) { stroke: var(--primary); stroke-width: 3px; }
     </style>
 </head>
 <body>
@@ -174,6 +193,13 @@
     <div class="workspace-container">
         <div id="editor-view"><div id="pattern-canvas" oncontextmenu="return false;"></div></div>
         <div id="result-view"><div class="scroll-wrapper"><div id="svg-wrapper"></div></div></div>
+    </div>
+
+    <!-- Окошко для слайдшоу инструкций -->
+    <div id="knot-tooltip">
+        <img id="tooltip-img" src="" alt="Как плести">
+        <div id="tooltip-title" class="tooltip-title">Название узла</div>
+        <div class="tooltip-hint">Кликни для инструкции</div>
     </div>
 
     <!-- Кнопка и Модальное окно помощи -->
@@ -721,6 +747,89 @@
             document.getElementById('editor-view').style.display = 'none'; document.getElementById('result-view').style.display = 'block';
             document.getElementById('btn-generate').style.display = 'none'; document.getElementById('btn-back').style.display = 'block';
             document.getElementById('editor-tools').style.display = 'none'; document.getElementById('editor-colors').style.display = 'none';
+        }
+        // --- ДАННЫЕ И ЛОГИКА ОБУЧАЮЩИХ СЛАЙДШОУ ---
+        const KNOT_TUTORIALS = {
+            "FK": {
+                name: "Правый узел (↘)",
+                url: "how_to_fk.html",
+                images: ["images/fk1.png", "images/fk2.png", "images/fk3.png", "images/fk4.png", "images/fk5.png", "images/fk6.png"]
+            },
+            "BK": {
+                name: "Левый узел (↙)",
+                url: "how_to_bk.html",
+                images: ["images/bk1.png", "images/bk2.png", "images/bk3.png", "images/bk4.png", "images/bk5.png", "images/bk6.png"]
+            },
+            "FKB": {
+                name: "Правый-Левый (↲)",
+                url: "how_to_fkb.html",
+                images: ["images/fbk1.png", "images/fbk2.png", "images/fbk3.png", "images/fbk4.png", "images/fbk5.png", "images/fbk6.png"]
+            },
+            "BKF": {
+                name: "Левый-Правый (↳)",
+                url: "how_to_bkf.html",
+                images: ["images/bfk1.png", "images/bfk2.png", "images/bfk3.png", "images/bfk4.png", "images/bfk5.png", "images/bfk6.png"]
+            }
+        };  
+
+        let tooltipTimer = null;
+        let slideInterval = null;
+        let currentKnotData = null;
+
+        // Ловим наведение на узел в SVG
+        document.body.addEventListener('mouseover', (e) => {
+            let knotGroup = e.target.closest('.interactive-knot');
+            if (knotGroup) {
+                let type = knotGroup.dataset.type;
+                currentKnotData = KNOT_TUTORIALS[type];
+                if(!currentKnotData) return;
+
+                // Задержка перед появлением окна (600 мс)
+                tooltipTimer = setTimeout(() => {
+                    let tooltip = document.getElementById('knot-tooltip');
+                    let rect = knotGroup.getBoundingClientRect();
+                    
+                    tooltip.style.left = (rect.left + window.scrollX - 80 + rect.width/2) + 'px';
+                    tooltip.style.top = (rect.top + window.scrollY - 170) + 'px'; 
+                    tooltip.style.display = 'block';
+
+                    document.getElementById('tooltip-title').innerText = currentKnotData.name;
+                    
+                    let slideIdx = 0;
+                    document.getElementById('tooltip-img').src = currentKnotData.images[slideIdx];
+                    
+                    // Запуск слайдшоу
+                    clearInterval(slideInterval);
+                    slideInterval = setInterval(() => {
+                        slideIdx = (slideIdx + 1) % currentKnotData.images.length;
+                        document.getElementById('tooltip-img').src = currentKnotData.images[slideIdx];
+                    }, 1200); 
+                }, 600); 
+            }
+        });
+
+        // Скрываем окно, если увели курсор
+        document.body.addEventListener('mouseout', (e) => {
+            let knotGroup = e.target.closest('.interactive-knot');
+            if (knotGroup) {
+                clearTimeout(tooltipTimer);
+                if (!document.getElementById('knot-tooltip').contains(e.relatedTarget)) hideTooltip();
+            }
+        });
+
+        document.getElementById('knot-tooltip').addEventListener('mouseleave', hideTooltip);
+
+        // Клик по подсказке открывает страницу гайда в новой вкладке
+        document.getElementById('knot-tooltip').addEventListener('click', () => {
+            if(currentKnotData && currentKnotData.url) {
+                window.open(currentKnotData.url, '_blank'); 
+            }
+        });
+
+        function hideTooltip() {
+            document.getElementById('knot-tooltip').style.display = 'none';
+            clearInterval(slideInterval);
+            currentKnotData = null;
         }
 
         window.onload = initGrid;
