@@ -30,7 +30,7 @@
             width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border-color); background: #f9fafb; cursor: pointer;
             display: flex; justify-content: center; align-items: center; font-size: 16px; transition: 0.2s;
         }
-        .icon-btn:hover { background: #e5e7eb; }
+        .icon-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
         .icon-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         
         .reset-btn { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
@@ -51,13 +51,12 @@
 
         .btn-action { background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-action:hover { background: #047857; transform: translateY(-1px); }
-        .btn-action:disabled { background: #9ca3af; cursor: wait; transform: none; }
         .btn-edit { background: var(--primary); display: none; font-size: 16px; padding: 12px 24px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
         .btn-edit:hover { background: var(--primary-hover); }
 
         .workspace-container { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
         
-        #editor-view { display: block; background: var(--panel-bg); padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
+        #editor-view { display: block; background: var(--panel-bg); padding: 40px; padding-top: 60px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
         #pattern-canvas { position: relative; margin: 0 auto; user-select: none; }
         
         .row-line { position: absolute; left: -40px; right: -40px; border-top: 1px solid #e5e7eb; z-index: 1; pointer-events: none; }
@@ -67,39 +66,57 @@
 
         .knot-cell {
             position: absolute; transform: rotate(45deg); cursor: crosshair;
-            border: 2px solid #e5e7eb; box-sizing: border-box; background-color: #ffffff; z-index: 10; 
-            transition: border-color 0.1s, transform 0.1s, box-shadow 0.1s;
+            border: 2px solid rgba(0,0,0,0.1); box-sizing: border-box; background-color: #ffffff; z-index: 10; 
+            transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
         }
-        .knot-cell:hover { border-color: #4b5563; z-index: 15; transform: rotate(45deg) scale(1.1); box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .knot-cell.empty { border: 2px dashed #d1d5db; background: var(--panel-bg) !important; }
-        .knot-cell.preview { opacity: 0.5; border-color: var(--primary); }
+        .knot-cell:hover { z-index: 15; transform: rotate(45deg) scale(1.15); box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-color: #4b5563; }
+        
+        .knot-arrow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 15px; font-weight: 900; pointer-events: none; transition: 0.2s;
+        }
+
+        .start-thread-node {
+            position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #374151;
+            z-index: 20; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .start-thread-node:hover { transform: scale(1.2); border-color: var(--primary); }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(45deg) translateX(0); }
+            25% { transform: rotate(45deg) translateX(-4px); border-color: #dc2626; box-shadow: 0 0 10px #dc2626; }
+            75% { transform: rotate(45deg) translateX(4px); border-color: #dc2626; box-shadow: 0 0 10px #dc2626; }
+        }
+        .shake-error { animation: shake 0.3s ease-in-out; }
 
         #result-view { display: none; background: #e5e5e5; padding: 30px; border-radius: 12px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); text-align: center; }
         .scroll-wrapper { max-height: 75vh; max-width: 90vw; overflow: auto; border-radius: 8px; border: 1px solid #ccc; background: #e5e5e5; }
-        .scroll-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
-        .scroll-wrapper::-webkit-scrollbar-track { background: #f3f4f6; }
-        .scroll-wrapper::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 5px; }
         
-        .interactive-svg .thread-line { transition: stroke-width 0.2s, opacity 0.2s; cursor: pointer; }
-        .interactive-svg:hover .thread-line { opacity: 0.3; } 
-        .interactive-svg .thread-line:hover { opacity: 1 !important; stroke-width: 9px !important; } 
-        
-        #status { font-weight: bold; margin-bottom: 15px; color: #4b5563; height: 20px; }
+        #status { font-weight: bold; margin-bottom: 15px; color: #4b5563; height: 20px; text-align: center; }
 
-        /* --- СТИЛИ ПОДСКАЗКИ С КАРТИНКАМИ --- */
-        #knot-tooltip {
-            position: absolute; display: none; background: white; border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 10px; z-index: 9999;
-            width: 160px; text-align: center; cursor: pointer; transition: opacity 0.2s;
-            pointer-events: auto; /* Позволяет наводить мышку на саму подсказку */
+        /* --- UI элементы --- */
+        #help-btn {
+            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--primary); color: white; border: none; font-size: 24px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; transition: 0.2s;
         }
-        #knot-tooltip img { width: 100%; height: 130px; object-fit: contain; border-radius: 4px; background: #f3f4f6; }
-        .tooltip-title { font-size: 14px; font-weight: bold; margin-top: 5px; color: var(--primary); }
-        .tooltip-hint { font-size: 11px; color: #6b7280; margin-top: 3px; }
-        
-        /* Интерактивность узлов в SVG */
-        .interactive-knot { cursor: help; }
-        .interactive-knot:hover circle:nth-child(2) { stroke: var(--primary); stroke-width: 3px; }
+        #help-btn:hover { background: var(--primary-hover); transform: scale(1.1); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 10000; opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px; max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative;
+        }
+        .modal-content h2 { margin-top: 0; color: var(--primary); }
+        .modal-content ul { padding-left: 20px; line-height: 1.6; }
+        .modal-close {
+            position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;
+        }
+        .modal-close:hover { color: #000; }
     </style>
 </head>
 <body>
@@ -108,27 +125,37 @@
         <div class="tool-group">
             <label title="Количество нитей">Нити: <input type="number" id="input-threads" value="10" min="4" max="40" step="2"></label>
             <label title="Количество рядов">Ряды: <input type="number" id="input-rows" value="12" min="4" max="100"></label>
-            <button class="icon-btn reset-btn" id="btn-reset" title="Сбросить холст">↺</button>
+            <button class="icon-btn reset-btn" id="btn-reset" title="Очистить холст">↺</button>
+            <button class="icon-btn" id="btn-random" title="Случайный узор">🎲</button>
+            <button class="icon-btn" id="btn-random-settings" title="Настройки генерации">⚙️</button>
         </div>
 
         <div class="tool-group" id="editor-tools">
             <button class="icon-btn active" id="tool-brush" title="Кисть (ЛКМ)">🖌️</button>
-            <button class="icon-btn" id="tool-fill" title="Заливка">🧯</button>
-            <button class="icon-btn" id="tool-line" title="Линия (Зажать и потянуть)">📏</button>
-            <button class="icon-btn" id="tool-eraser" title="Ластик">🧽</button>
+            <button class="icon-btn" id="tool-eraser" title="Сбросить узел (пропуск фона)">🧽</button>
         </div>
 
         <div class="tool-group" id="editor-colors">
-            <div class="quick-palette" id="quick-palette">
-                
-                <div class="swatch" style="background: #FF2400;" data-color="#FF2400"></div> 
-                <div class="swatch" style="background: #ffff00;" data-color="#FFFF00"></div>
-                <div class="swatch active" style="background: #9333ea;" data-color="#9333ea"></div>
-                <div class="swatch" style="background: #3b82f6;" data-color="#3b82f6"></div>
-                <div class="swatch" style="background: #10b981;" data-color="#10b981"></div>
-                <div class="swatch" style="background: #ffffff;" data-color="#ffffff"></div>
-                <div class="swatch" style="background: #000000;" data-color="#000000"></div>
+            <!-- Обертка для двух рядов палитры -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-right: 10px;">
+                <div class="quick-palette" id="quick-palette">
+                    <div class="swatch" style="background: #ff2400;" data-color="#ff2400"></div> 
+                    <div class="swatch" style="background: #ffff00;" data-color="#ffff00"></div>
+                    <div class="swatch active" style="background: #9333ea;" data-color="#9333ea"></div>
+                    <div class="swatch" style="background: #3b82f6;" data-color="#3b82f6"></div>
+                    <div class="swatch" style="background: #10b981;" data-color="#10b981"></div>
+                    <div class="swatch" style="background: #ffffff;" data-color="#ffffff"></div>
+                    <div class="swatch" style="background: #000000;" data-color="#000000"></div>
+                </div>
+                <!-- Панель для истории цветов (изначально пустая, но держит высоту) -->
+                <div class="quick-palette" id="recent-palette" style="min-height: 28px;"></div>
             </div>
+            
+            <div class="color-picker-wrapper">
+                <input type="color" id="color-picker" value="#9333ea">
+                <input type="text" id="hex-input" class="hex-input" value="#9333ea" maxlength="7">
+            </div>
+        </div>
             
             <div class="color-picker-wrapper">
                 <input type="color" id="color-picker" value="#9333ea">
@@ -138,72 +165,169 @@
 
         <div class="tool-group" style="border: none;">
             <button class="btn-action" id="btn-generate">Создать схему ➔</button>
-            <button class="btn-action btn-edit" id="btn-back">⬅ Вернуться к редактированию</button>
+            <button class="btn-action btn-edit" id="btn-back">⬅ Вернуться</button>
         </div>
     </div>
 
-    <div id="status">ПКМ - закрасить. Ctrl+Z - отмена.</div>
+    <div id="status">Задайте цвета верхних нитей, чтобы начать рисовать!</div>
 
     <div class="workspace-container">
         <div id="editor-view"><div id="pattern-canvas" oncontextmenu="return false;"></div></div>
         <div id="result-view"><div class="scroll-wrapper"><div id="svg-wrapper"></div></div></div>
     </div>
 
-    <!-- Окошко для слайдшоу -->
-    <div id="knot-tooltip">
-        <img id="tooltip-img" src="" alt="Как плести">
-        <div id="tooltip-title" class="tooltip-title">Название узла</div>
-        <div class="tooltip-hint">Кликни для инструкции</div>
+    <!-- Кнопка и Модальное окно помощи -->
+    <button id="help-btn" title="Как пользоваться?">?</button>
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal">✖</button>
+            <h2>Добро пожаловать в Фенечкомейкер:3</h2>
+            <p>Этот редактор работает по законам <b>Прямой кинематики</b>. Вы не можете раскрасить узел в цвет, если нить этого цвета физически до него не дотянулась!</p>
+            <ul>
+                <li><b>Шаг 1:</b> Задайте стартовые цвета нитей, кликая по кружочкам над сеткой. По умолчанию они белые.</li>
+                <li><b>Двойной клик:</b> Если вы красите узел, и цвет "уходит не туда", кликните по узлу тем же цветом <b>еще раз</b>. Узел сменится на возвратный (стрелочка изогнется), и нить отскочит в нужную сторону.</li>
+                <li><b>Правый клик:</b> Автоматически берет на кисть самый популярный цвет с холста.</li>
+                <li><b>Ctrl + Z:</b> Отмена последнего действия.</li>
+                <li><b>Ластик:</b> Сбрасывает узел в стандартное "прямое" положение (пропускает фоновую нить).</li>
+                <li><b>Кубик 🎲:</b> Создает случайный (но физически правильный!) узор.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="random-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-random-modal">✖</button>
+            <h2>Настройки генератора 🎲</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold;">
+                    <input type="checkbox" id="opt-seamless" checked style="width: 18px; height: 18px;"> 
+                    Замыкающийся узор (Идеальный раппорт)
+                </label>
+                <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold;">
+                    <input type="checkbox" id="opt-symmetric" checked style="width: 18px; height: 18px;"> 
+                    Эстетичный узор (Симметрия от центра)
+                </label>
+                <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; color: var(--primary);">
+                    <input type="checkbox" id="opt-classic" style="width: 18px; height: 18px;"> 
+                    Классика (Гладкие диагонали, без отскоков)
+                </label>
+                <label style="cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold;">
+                    <input type="checkbox" id="opt-minimal" style="width: 18px; height: 18px;"> 
+                    Минимализм (Использовать только 2 цвета)
+                </label>
+            </div>
+        </div>
     </div>
 
     <script>
         const KNOT_SIZE = 45; 
         const STEP_X = KNOT_SIZE * Math.sqrt(2); 
         const STEP_Y = STEP_X / 2; 
+        const ARROW_SYMBOLS = { "FK": "↘", "BK": "↙", "FKB": "↲", "BKF": "↳" };
 
         let numThreads = 10, rows = 12;
-        let matrix = [];      
-        let history = [];     
+        let startThreads = [];    
+        let matrix = [];          
+        let incomingPhysics = []; 
+        let renderColors = [];    
+        let history = []; // Хранит {matrix, startThreads}
+
         let activeColor = '#9333ea';
         let currentTool = 'brush'; 
-        
         let isDrawing = false;
-        let lineStartNode = null; 
-        let hoveredNode = null; 
-        let isRightClick = false;
-        let previousColor = null;
-        let previousTool = null;
 
-        // --- ИНИЦИАЛИЗАЦИЯ UI И СОБЫТИЙ ---
+        // --- ИНИЦИАЛИЗАЦИЯ СОБЫТИЙ ---
         document.getElementById('btn-reset').addEventListener('click', initGrid);
         document.getElementById('input-threads').addEventListener('change', initGrid);
         document.getElementById('input-rows').addEventListener('change', initGrid);
+        document.getElementById('btn-random').addEventListener('click', randomizePattern);
         
         document.getElementById('tool-brush').addEventListener('click', () => setTool('brush'));
-        document.getElementById('tool-fill').addEventListener('click', () => setTool('fill'));
-        document.getElementById('tool-line').addEventListener('click', () => setTool('line'));
         document.getElementById('tool-eraser').addEventListener('click', () => setTool('eraser'));
-        
         document.getElementById('btn-generate').addEventListener('click', startGeneration);
         document.getElementById('btn-back').addEventListener('click', showEditor);
 
+        // --- МОДАЛЬНОЕ ОКНО ---
+        const helpModal = document.getElementById('help-modal');
+        document.getElementById('help-btn').addEventListener('click', () => helpModal.classList.add('active'));
+        document.getElementById('close-modal').addEventListener('click', () => helpModal.classList.remove('active'));
+        helpModal.addEventListener('click', (e) => { if(e.target === helpModal) helpModal.classList.remove('active'); });
+
+        // --- ПАЛИТРА И ИСТОРИЯ ЦВЕТОВ (ИСПРАВЛЕНО) ---
         const colorPicker = document.getElementById('color-picker');
         const hexInput = document.getElementById('hex-input');
-        const swatches = document.querySelectorAll('.swatch');
+        const defaultSwatches = document.querySelectorAll('#quick-palette .swatch');
+        const recentPalette = document.getElementById('recent-palette');
+
+        const DEFAULT_COLORS = Array.from(defaultSwatches).map(s => s.dataset.color.toLowerCase());
+        let recentColors = []; // Строго 7 ячеек
 
         function updateColor(color) {
             activeColor = color.toLowerCase();
-            colorPicker.value = activeColor;
+            colorPicker.value = activeColor; 
             hexInput.value = activeColor;
-            swatches.forEach(s => {
+            
+            // Подсветка в стандартной палитре
+            defaultSwatches.forEach(s => { 
+                s.classList.remove('active'); 
+                if (s.dataset.color.toLowerCase() === activeColor) s.classList.add('active'); 
+            });
+
+            // Добавляем в историю, только если цвета нет в стандартном наборе
+            if (!DEFAULT_COLORS.includes(activeColor)) {
+                addToRecentColors(activeColor);
+            }
+
+            updateRecentSwatchesVisuals();
+            setTool('brush');
+        }
+
+        function addToRecentColors(color) {
+            // Если такой цвет уже есть, подтягиваем его в начало списка
+            recentColors = recentColors.filter(c => c !== color);
+            recentColors.unshift(color);
+            if (recentColors.length > 7) recentColors.pop(); // Ограничение строго 7 ячеек
+            
+            renderRecentColors();
+        }
+
+        function renderRecentColors() {
+            recentPalette.innerHTML = '';
+            recentColors.forEach(c => {
+                const swatch = document.createElement('div');
+                swatch.className = 'swatch';
+                if (c === activeColor) swatch.classList.add('active');
+                swatch.style.backgroundColor = c;
+                swatch.dataset.color = c;
+                swatch.addEventListener('click', (e) => updateColor(e.target.dataset.color));
+                recentPalette.appendChild(swatch);
+            });
+        }
+
+        function updateRecentSwatchesVisuals() {
+            document.querySelectorAll('#recent-palette .swatch').forEach(s => {
                 s.classList.remove('active');
                 if (s.dataset.color === activeColor) s.classList.add('active');
             });
-            if(currentTool === 'eraser') setTool('brush');
         }
 
-        swatches.forEach(swatch => swatch.addEventListener('click', (e) => updateColor(e.target.dataset.color)));
-        colorPicker.addEventListener('input', (e) => updateColor(e.target.value));
+        // --- СЛУШАТЕЛИ СОБЫТИЙ ---
+        defaultSwatches.forEach(swatch => swatch.addEventListener('click', (e) => updateColor(e.target.dataset.color)));
+
+        // 1. Живое изменение цвета на холсте при движении пипетки (БЕЗ спама в историю)
+        colorPicker.addEventListener('input', (e) => {
+            activeColor = e.target.value.toLowerCase();
+            hexInput.value = activeColor;
+            defaultSwatches.forEach(s => s.classList.remove('active'));
+            updateRecentSwatchesVisuals();
+            setTool('brush');
+        });
+
+        // 2. Запись в историю ТОЛЬКО когда пользователь окончательно выбрал цвет (отпустил мышь)
+        colorPicker.addEventListener('change', (e) => {
+            updateColor(e.target.value);
+        });
+
         hexInput.addEventListener('change', (e) => {
             let val = e.target.value;
             if(!val.startsWith('#')) val = '#' + val;
@@ -217,370 +341,315 @@
         }
 
         function showEditor() {
-            document.getElementById('editor-view').style.display = 'block';
-            document.getElementById('result-view').style.display = 'none';
-            document.getElementById('btn-generate').style.display = 'block';
-            document.getElementById('btn-back').style.display = 'none';
-            document.getElementById('editor-tools').style.display = 'flex';
-            document.getElementById('editor-colors').style.display = 'flex';
+            document.getElementById('editor-view').style.display = 'block'; document.getElementById('result-view').style.display = 'none';
+            document.getElementById('btn-generate').style.display = 'block'; document.getElementById('btn-back').style.display = 'none';
+            document.getElementById('editor-tools').style.display = 'flex'; document.getElementById('editor-colors').style.display = 'flex';
             setStatus("Режим редактирования.");
         }
 
         function setStatus(msg, color="#4b5563") {
-            const st = document.getElementById('status');
-            st.innerText = msg; st.style.color = color;
+            const st = document.getElementById('status'); st.innerText = msg; st.style.color = color;
         }
 
-        // --- ЛОГИКА РЕДАКТОРА (CTRL+Z, ПКМ, ЗАЛИВКА) ---
+        // --- UNDO (Ctrl+Z) & ПКМ ---
         function saveState() {
-            history.push(JSON.parse(JSON.stringify(matrix)));
+            history.push({ matrix: JSON.parse(JSON.stringify(matrix)), startThreads: [...startThreads] });
             if(history.length > 30) history.shift();
         }
 
         function undo() {
             if(history.length > 0) {
-                matrix = history.pop();
-                renderCanvasFromMatrix();
+                let state = history.pop();
+                matrix = state.matrix; startThreads = state.startThreads;
+                simulatePhysics(); buildCanvasDOM(); updateCanvasVisuals();
             }
         }
         
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyZ' || e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'я')) {
-                e.preventDefault(); undo();
-            }
+            if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyZ' || e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'я')) { e.preventDefault(); undo(); }
         });
 
         function getMostFrequentColor() {
-            let counts = {};
-            let maxCount = 0; let maxColor = '#ffffff';
-            matrix.flat().forEach(col => {
-                if(col !== 'EMPTY') {
-                    counts[col] = (counts[col] || 0) + 1;
-                    if(counts[col] > maxCount) { maxCount = counts[col]; maxColor = col; }
-                }
+            let counts = {}; let maxCount = 0; let maxColor = '#ffffff';
+            renderColors.flat().forEach(col => {
+                counts[col] = (counts[col] || 0) + 1;
+                if(counts[col] > maxCount) { maxCount = counts[col]; maxColor = col; }
             });
             return maxColor;
         }
 
         const canvas = document.getElementById('pattern-canvas');
-        
         canvas.addEventListener('mousedown', (e) => {
-            if(e.button === 2) { 
-                isRightClick = true;
-                previousColor = activeColor; // Сохраняем текущий цвет
-                previousTool = currentTool;  // Сохраняем текущий инструмент
-                updateColor(getMostFrequentColor()); 
-                setTool('brush'); 
-            }
+            if(e.button === 2) { updateColor(getMostFrequentColor()); } // ПКМ
             isDrawing = true;
         });
-        
-        window.addEventListener('mouseup', () => {
-            isDrawing = false;
-            
-            // Если отпустили ПКМ — возвращаем старые настройки
-            if(isRightClick) {
-                isRightClick = false;
-                if(previousColor && previousTool) {
-                    updateColor(previousColor);
-                    setTool(previousTool);
+        window.addEventListener('mouseup', () => isDrawing = false);
+
+        // --- ФИЗИКА (Forward Kinematics) ---
+        function simulatePhysics() {
+            let currentThreads = [...startThreads]; 
+            for (let r = 0; r < rows; r++) {
+                if(!renderColors[r]) renderColors[r] = [];
+                if(!incomingPhysics[r]) incomingPhysics[r] = [];
+                let isEven = (r % 2 === 0);
+                let nextThreads = [...currentThreads]; 
+
+                for (let c = 0; c < matrix[r].length; c++) {
+                    let leftIdx = isEven ? c * 2 : c * 2 + 1;
+                    let rightIdx = leftIdx + 1;
+                    let thL = currentThreads[leftIdx], thR = currentThreads[rightIdx];
+
+                    incomingPhysics[r][c] = { thL, thR };
+                    let type = matrix[r][c]; let displayColor = thL;
+
+                    if (type === 'FK') { displayColor = thL; nextThreads[leftIdx] = thR; nextThreads[rightIdx] = thL; }
+                    else if (type === 'BK') { displayColor = thR; nextThreads[leftIdx] = thR; nextThreads[rightIdx] = thL; }
+                    else if (type === 'FKB') { displayColor = thL; }
+                    else if (type === 'BKF') { displayColor = thR; }
+
+                    renderColors[r][c] = displayColor;
+                }
+                currentThreads = nextThreads;
+            }
+        }
+
+        function handleBrushClick(r, c, targetColor) {
+            let physics = incomingPhysics[r][c];
+            if (!physics) return false;
+
+            let thL = physics.thL, thR = physics.thR, currentType = matrix[r][c];
+            let changed = false;
+
+            if (currentTool === 'eraser') {
+                if (currentType !== 'FK') { matrix[r][c] = 'FK'; changed = true; }
+            } else {
+                if (targetColor === thL && targetColor === thR) {
+                    if (currentType === 'FK') matrix[r][c] = 'BK';
+                    else if (currentType === 'BK') matrix[r][c] = 'FKB';
+                    else if (currentType === 'FKB') matrix[r][c] = 'BKF';
+                    else matrix[r][c] = 'FK';
+                    changed = true;
+                } else if (targetColor === thL) {
+                    matrix[r][c] = (currentType === 'FK') ? 'FKB' : 'FK'; changed = true;
+                } else if (targetColor === thR) {
+                    matrix[r][c] = (currentType === 'BK') ? 'BKF' : 'BK'; changed = true;
+                } else {
+                    return false; // Блокировка
                 }
             }
 
-            if(currentTool === 'line' && lineStartNode) {
-                if (hoveredNode) applyLine(lineStartNode, hoveredNode, activeColor);
-                lineStartNode = null;
-                clearPreviews();
-            }
-        });
+            if (changed) { simulatePhysics(); updateCanvasVisuals(); }
+            return true;
+        }
 
+        // --- ОБРАБОТЧИКИ UI РАНДОМИЗАТОРА ---
+        const randomModal = document.getElementById('random-modal');
+        document.getElementById('btn-random-settings').addEventListener('click', () => randomModal.classList.add('active'));
+        document.getElementById('close-random-modal').addEventListener('click', () => randomModal.classList.remove('active'));
+        randomModal.addEventListener('click', (e) => { if(e.target === randomModal) randomModal.classList.remove('active'); });
+
+        
+        function randomizePattern() {
+            saveState();
+            
+            const isSeamless = document.getElementById('opt-seamless').checked;
+            const isSymmetric = document.getElementById('opt-symmetric').checked;
+            const isClassic = document.getElementById('opt-classic').checked;
+            const isMinimal = document.getElementById('opt-minimal').checked;
+
+            // 1. Подготавливаем палитру
+            let fullPalette = Array.from(document.querySelectorAll('.swatch'))
+                .map(s => s.dataset.color)
+                .filter(c => c !== '#ffffff');
+                
+            fullPalette.sort(() => Math.random() - 0.5); 
+            let palette = isMinimal ? fullPalette.slice(0, 2) : fullPalette.slice(0, Math.min(fullPalette.length, 5));
+            if (palette.length < 2) palette = fullPalette.slice(0, 2);
+
+            const types = isClassic ? ['FK', 'BK'] : ['FK', 'BK', 'FKB', 'BKF'];
+
+            let attempts = 0;
+            let maxAttempts = 40; // Делаем попытки найти красивую и 100% замкнутую матрицу
+
+            while (attempts < maxAttempts) {
+                attempts++;
+
+                // 2. Генерация матрицы узлов
+                for (let r = 0; r < rows; r++) {
+                    let rowLength = matrix[r].length;
+                    for (let c = 0; c < rowLength; c++) {
+                        if (isSymmetric && c >= Math.ceil(rowLength / 2)) {
+                            let mirrorC = rowLength - 1 - c;
+                            let leftType = matrix[r][mirrorC];
+                            let mirrorType = leftType;
+                            
+                            if (leftType === 'FK') mirrorType = 'BK';
+                            else if (leftType === 'BK') mirrorType = 'FK';
+                            else if (leftType === 'FKB') mirrorType = 'BKF';
+                            else if (leftType === 'BKF') mirrorType = 'FKB';
+                            
+                            matrix[r][c] = mirrorType;
+                        } else {
+                            matrix[r][c] = types[Math.floor(Math.random() * types.length)];
+                        }
+                    }
+                }
+
+                // 3. Симуляция движения нитей (DSU)
+                let parent = Array.from({length: numThreads}, (_, i) => i);
+                function find(i) { return parent[i] === i ? i : (parent[i] = find(parent[i])); }
+                function union(i, j) { parent[find(i)] = find(j); }
+
+                if (isSymmetric) {
+                    for (let i = 0; i < Math.floor(numThreads / 2); i++) union(i, numThreads - 1 - i);
+                }
+
+                if (isSeamless) {
+                    let pos = Array.from({length: numThreads}, (_, i) => i);
+                    for (let r = 0; r < rows; r++) {
+                        let isEven = (r % 2 === 0);
+                        let nextPos = [...pos];
+                        for (let c = 0; c < matrix[r].length; c++) {
+                            let type = matrix[r][c];
+                            let lIdx = isEven ? c * 2 : c * 2 + 1, rIdx = lIdx + 1;
+                            if (type === 'FK' || type === 'BK') {
+                                nextPos[lIdx] = pos[rIdx];
+                                nextPos[rIdx] = pos[lIdx];
+                            }
+                        }
+                        pos = nextPos;
+                    }
+                    // ЖЕСТКОЕ ЗАМЫКАНИЕ: связываем старт и конец
+                    for (let k = 0; k < numThreads; k++) union(pos[k], k); 
+                }
+
+                // Проверяем, сколько УНИКАЛЬНЫХ групп цветов у нас получилось
+                let uniqueRoots = new Set();
+                for (let i = 0; i < numThreads; i++) uniqueRoots.add(find(i));
+
+                // Если получилось хотя бы 2 разных цвета (или раппорт отключен) — узор идеален!
+                if (uniqueRoots.size >= 2 || !isSeamless || numThreads <= 2) {
+                    
+                    // 4. Гарантированно назначаем РАЗНЫЕ цвета разным группам
+                    let uniqueRootsList = Array.from(uniqueRoots);
+                    let shuffledPalette = [...palette].sort(() => Math.random() - 0.5);
+                    let groupColors = {};
+
+                    uniqueRootsList.forEach((root, idx) => {
+                        groupColors[root] = shuffledPalette[idx % shuffledPalette.length];
+                    });
+
+                    for (let i = 0; i < numThreads; i++) {
+                        startThreads[i] = groupColors[find(i)];
+                    }
+
+                    break; // Выходим из цикла попыток, идеальный узор найден!
+                }
+            }
+
+            // Пересчитываем мир
+            simulatePhysics(); 
+            buildCanvasDOM(); 
+            updateCanvasVisuals();
+            
+        }
+
+        // --- ИНИЦИАЛИЗАЦИЯ И РЕНДЕР ---
         function initGrid() {
             numThreads = parseInt(document.getElementById('input-threads').value);
             if(numThreads % 2 !== 0) { numThreads++; document.getElementById('input-threads').value = numThreads; }
             rows = parseInt(document.getElementById('input-rows').value);
             
-            history = []; matrix = [];
+            history = [];
+            // ПО УМОЛЧАНИЮ ВСЕ БЕЛОЕ
+            startThreads = new Array(numThreads).fill('#ffffff');
+            matrix = [];
             const maxKnots = Math.floor(numThreads / 2);
-            for (let r = 0; r < rows; r++) {
-                matrix.push(new Array((r % 2 === 0) ? maxKnots : maxKnots - 1).fill('#ffffff'));
-            }
-            saveState(); 
-            renderCanvasFromMatrix();
+            for (let r = 0; r < rows; r++) matrix.push(new Array((r % 2 === 0) ? maxKnots : maxKnots - 1).fill('FK'));
+            
+            saveState();
+            simulatePhysics(); buildCanvasDOM(); updateCanvasVisuals();
         }
 
-        function renderCanvasFromMatrix() {
+        function buildCanvasDOM() {
             canvas.innerHTML = ''; 
             const maxKnots = Math.floor(numThreads / 2);
             const offsetX = KNOT_SIZE / 2; 
             canvas.style.width = (maxKnots * STEP_X + (STEP_X/2)) + 'px';
-            canvas.style.height = (rows * STEP_Y + (STEP_Y/2)) + 'px';
+            canvas.style.height = (rows * STEP_Y + (STEP_Y/2)) + 30 + 'px';
 
-            for(let r = 0; r < rows; r++) {
-                let y = r * STEP_Y + (KNOT_SIZE/2);
-                let line = document.createElement('div'); line.className = 'row-line'; line.style.top = y + 'px'; canvas.appendChild(line);
-                let numL = document.createElement('div'); numL.className = 'row-number left'; numL.style.top = y + 'px'; numL.innerText = r + 1; canvas.appendChild(numL);
-                let numR = document.createElement('div'); numR.className = 'row-number right'; numR.style.top = y + 'px'; numR.innerText = r + 1; canvas.appendChild(numR);
+            for (let i = 0; i < numThreads; i++) {
+                let thNode = document.createElement('div');
+                thNode.className = 'start-thread-node';
+                thNode.style.left = (offsetX + (i * (STEP_X/2)) - 12) + 'px'; thNode.style.top = '0px';
+                thNode.style.backgroundColor = startThreads[i];
+                thNode.title = "Кликните, чтобы изменить цвет нити";
+                
+                thNode.addEventListener('click', () => {
+                    saveState(); startThreads[i] = activeColor; thNode.style.backgroundColor = activeColor;
+                    simulatePhysics(); updateCanvasVisuals();
+                });
+                canvas.appendChild(thNode);
             }
 
+            let yOffset = 30; 
             for (let r = 0; r < rows; r++) {
+                let yLine = yOffset + r * STEP_Y + KNOT_SIZE/2;
+                let line = document.createElement('div'); line.className = 'row-line'; line.style.top = yLine + 'px'; canvas.appendChild(line);
+                let numL = document.createElement('div'); numL.className = 'row-number left'; numL.style.top = yLine + 'px'; numL.innerText = r + 1; canvas.appendChild(numL);
+
                 const isEvenRow = (r % 2 === 0);
                 for (let c = 0; c < matrix[r].length; c++) {
                     const knot = document.createElement('div');
-                    knot.className = 'knot-cell';
-                    knot.dataset.r = r; knot.dataset.c = c;
+                    knot.className = 'knot-cell'; knot.id = `knot-${r}-${c}`;
                     
-                    // ДОБАВЛЯЕМ OFFSET К КООРДИНАТЕ X
                     let x = offsetX + (c * STEP_X) + (isEvenRow ? 0 : STEP_X / 2);
-                    let y = r * STEP_Y;
-                    knot.style.width = KNOT_SIZE + 'px';
-                    knot.style.height = KNOT_SIZE + 'px';
+                    let y = yOffset + r * STEP_Y;
+                    knot.style.width = KNOT_SIZE + 'px'; knot.style.height = KNOT_SIZE + 'px';
                     knot.style.left = x + 'px'; knot.style.top = y + 'px';
-                    knot.dataset.cx = x + KNOT_SIZE/2; knot.dataset.cy = y + KNOT_SIZE/2;
 
-                    updateKnotVisual(knot, matrix[r][c]);
+                    const arrow = document.createElement('div'); arrow.className = 'knot-arrow'; knot.appendChild(arrow);
 
-                    knot.addEventListener('mousedown', (e) => { if(e.button !== 2) handleKnotInteract(e, knot, true); });
-                    knot.addEventListener('mouseenter', (e) => { hoveredNode = knot; handleKnotInteract(e, knot, false); });
-                    knot.addEventListener('mouseleave', () => { hoveredNode = null; });
-                    
+                    let interact = () => {
+                        let prevType = matrix[r][c];
+                        let success = handleBrushClick(r, c, currentTool === 'eraser' ? 'EMPTY' : activeColor);
+                        if (success && matrix[r][c] !== prevType) saveState();
+                        if (!success && currentTool === 'brush') {
+                            knot.classList.remove('shake-error'); void knot.offsetWidth; knot.classList.add('shake-error');
+                        }
+                    };
+
+                    knot.addEventListener('mousedown', (e) => { if(e.button !== 2) interact(); });
+                    knot.addEventListener('mouseenter', () => { if(isDrawing) interact(); });
                     canvas.appendChild(knot);
                 }
             }
         }
 
-        function updateKnotVisual(el, color) {
-            if(color === 'EMPTY') { el.classList.add('empty'); el.style.backgroundColor = ''; } 
-            else { el.classList.remove('empty'); el.style.backgroundColor = color; }
-        }
-
-        function handleKnotInteract(e, knotEl, isClick) {
-            let r = parseInt(knotEl.dataset.r); let c = parseInt(knotEl.dataset.c);
-            let paintColor = currentTool === 'eraser' ? 'EMPTY' : activeColor;
-
-            if (currentTool === 'line') {
-                if (isClick) {
-                    saveState();
-                    lineStartNode = { r, c, el: knotEl, cx: parseFloat(knotEl.dataset.cx), cy: parseFloat(knotEl.dataset.cy) };
-                } else if (isDrawing && lineStartNode) { drawPreviewLine(lineStartNode, knotEl); }
-            } else if (currentTool === 'fill') {
-                if (isClick) { saveState(); floodFill(r, c, paintColor); }
-            } else { 
-                if (isClick) saveState();
-                if (isDrawing || isClick) { matrix[r][c] = paintColor; updateKnotVisual(knotEl, paintColor); }
-            }
-        }
-
-        function getNeighbors(r, c) {
-            let n = [];
-            if (c > 0) n.push([r, c-1]);
-            if (c < matrix[r].length - 1) n.push([r, c+1]);
-            
-            let cLeft = (r % 2 === 0) ? c - 1 : c;
-            let cRight = (r % 2 === 0) ? c : c + 1;
-
-            if (r > 0) {
-                if (cLeft >= 0) n.push([r-1, cLeft]);
-                if (cRight < matrix[r-1].length) n.push([r-1, cRight]);
-            }
-            if (r < rows - 1) {
-                if (cLeft >= 0) n.push([r+1, cLeft]);
-                if (cRight < matrix[r+1].length) n.push([r+1, cRight]);
-            }
-            return n;
-        }
-
-        function floodFill(startR, startC, targetColor) {
-            let startColor = matrix[startR][startC];
-            if (startColor === targetColor) return;
-            let queue = [[startR, startC]];
-            while (queue.length > 0) {
-                let [r, c] = queue.shift();
-                if (matrix[r][c] === startColor) {
-                    matrix[r][c] = targetColor;
-                    updateKnotVisual(document.querySelector(`.knot-cell[data-r="${r}"][data-c="${c}"]`), targetColor);
-                    getNeighbors(r, c).forEach(pos => queue.push(pos));
-                }
-            }
-        }
-
-        function clearPreviews() { document.querySelectorAll('.knot-cell.preview').forEach(el => el.classList.remove('preview')); }
-
-        function getNodesOnLine(startNode, endNode) {
-            let nodes = []; let allKnots = document.querySelectorAll('.knot-cell');
-            let x1 = startNode.cx, y1 = startNode.cy;
-            let x2 = parseFloat(endNode.dataset.cx), y2 = parseFloat(endNode.dataset.cy);
-            
-            allKnots.forEach(knot => {
-                let kx = parseFloat(knot.dataset.cx), ky = parseFloat(knot.dataset.cy);
-                let l2 = Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2);
-                let t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((kx - x1) * (x2 - x1) + (ky - y1) * (y2 - y1)) / l2));
-                let projX = x1 + t * (x2 - x1), projY = y1 + t * (y2 - y1);
-                let dist = Math.sqrt(Math.pow(kx - projX, 2) + Math.pow(ky - projY, 2));
-                
-                if(dist < KNOT_SIZE * 0.8) { 
-                    if (kx >= Math.min(x1, x2)-5 && kx <= Math.max(x1, x2)+5 && ky >= Math.min(y1, y2)-5 && ky <= Math.max(y1, y2)+5) nodes.push(knot);
-                }
-            });
-            return nodes;
-        }
-
-        function drawPreviewLine(startNode, endNode) {
-            clearPreviews(); getNodesOnLine(startNode, endNode).forEach(knot => knot.classList.add('preview'));
-        }
-
-        function applyLine(startNode, endNode, color) {
-            getNodesOnLine(startNode, endNode).forEach(knot => {
-                let r = parseInt(knot.dataset.r), c = parseInt(knot.dataset.c);
-                matrix[r][c] = color; updateKnotVisual(knot, color);
-            });
-        }
-
-        // --- АЛГОРИТМ РАСЧЕТА  ---
-        function solveMathFixed(testMatrix, numThreads) {
-            let palette = [...new Set(testMatrix.flat())].filter(c => c !== "EMPTY");
-            if (palette.length === 0) palette = ["#ffffff"];
-
-            let currentRows = testMatrix.length;
-            let knotsRes = Array.from({ length: currentRows }, (_, r) => new Array(testMatrix[r].length).fill(null));
-            
-            let iters = 0;
-            const MAX_ITERS = 150000; // Снизил лимит, чтобы интерфейс работал мгновенно
-
-            let bestFallback = null; // Заначка для первого найденного рабочего (но не раппортного) решения
-
-            function dfs(r, c, currentThreads, startThreads) {
-                if (iters++ > MAX_ITERS) return false;
-                
-                // ЭТАП 1: Дошли до низа
-                if (r === currentRows) {
-                    let isSeamless = true;
-                    for (let i = 0; i < numThreads; i++) {
-                        if (startThreads[i] !== null && currentThreads[i] !== null && startThreads[i] !== currentThreads[i]) {
-                            isSeamless = false; break;
-                        }
-                    }
+        function updateCanvasVisuals() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < matrix[r].length; c++) {
+                    let knot = document.getElementById(`knot-${r}-${c}`);
+                    if (!knot) continue;
+                    let type = matrix[r][c]; let color = renderColors[r][c];
                     
-                    if (isSeamless) {
-                        // Нашли Идеальный раппорт! Сразу возвращаем.
-                        return { finalKnots: JSON.parse(JSON.stringify(knotsRes)), initialThreads: [...startThreads], isSeamless: true };
+                    knot.style.backgroundColor = color;
+                    let arrow = knot.querySelector('.knot-arrow');
+                    arrow.innerText = ARROW_SYMBOLS[type];
+                    
+                    if (color === '#ffffff' || color === '#ffff00' || color === '#fef0c7') {
+                        arrow.style.color = '#000'; arrow.style.textShadow = 'none';
                     } else {
-                        // Сохраняем самое первое рабочее решение в заначку (если вдруг идеального не существует)
-                        if (!bestFallback) {
-                            bestFallback = { finalKnots: JSON.parse(JSON.stringify(knotsRes)), initialThreads: [...startThreads], isSeamless: false };
-                        }
-                        return false; // Откат: продолжаем искать идеальное
+                        arrow.style.color = '#fff'; arrow.style.textShadow = '0px 1px 2px rgba(0,0,0,0.5)';
                     }
                 }
-
-                let rowKnotsCount = testMatrix[r].length;
-                let leftThreadIdx = (r % 2 === 0) ? c * 2 : c * 2 + 1;
-                let rightThreadIdx = leftThreadIdx + 1;
-
-                let thA_color = currentThreads[leftThreadIdx];
-                let thB_color = currentThreads[rightThreadIdx];
-                let tColor = testMatrix[r][c];
-
-                if (tColor === "EMPTY") {
-                    knotsRes[r][c] = "EMPTY";
-                    let nC = c + 1, nR = r; if (nC === rowKnotsCount) { nR++; nC = 0; }
-                    return dfs(nR, nC, currentThreads, startThreads);
-                }
-
-                let possibleA = (thA_color !== null) ? [thA_color] : palette;
-                let possibleB = (thB_color !== null) ? [thB_color] : palette;
-
-                for (let colorA of possibleA) {
-                    for (let colorB of possibleB) {
-                        if (colorA !== tColor && colorB !== tColor) continue;
-
-                        let moves = [];
-                        // Приоритет отдаем прямым узлам, чтобы нити не скакали по схеме зря
-                        if (colorA === tColor) moves.push({ type: "FK",  outL: colorB, outR: colorA });
-                        if (colorB === tColor) moves.push({ type: "BK",  outL: colorB, outR: colorA });
-                        if (colorA === tColor) moves.push({ type: "FKB", outL: colorA, outR: colorB });
-                        if (colorB === tColor) moves.push({ type: "BKF", outL: colorA, outR: colorB });
-
-                        for (let m of moves) {
-                            knotsRes[r][c] = m.type;
-                            let nextThreads = [...currentThreads];
-                            nextThreads[leftThreadIdx] = m.outL;
-                            nextThreads[rightThreadIdx] = m.outR;
-
-                            let nextStart = [...startThreads];
-                            if (startThreads[leftThreadIdx] === null) nextStart[leftThreadIdx] = colorA;
-                            if (startThreads[rightThreadIdx] === null) nextStart[rightThreadIdx] = colorB;
-
-                            let nC = c + 1, nR = r; if (nC === rowKnotsCount) { nR++; nC = 0; }
-                            let result = dfs(nR, nC, nextThreads, nextStart);
-                            if (result !== false) return result; 
-                        }
-                    }
-                }
-                return false; 
             }
-
-            let initialEmptyState = new Array(numThreads).fill(null);
-            let solution = dfs(0, 0, initialEmptyState, initialEmptyState);
-
-            // ЛОГИКА ВОЗВРАТА:
-            if (solution !== false) {
-                // 1. Нашли идеальный раппорт
-                let finalStart = solution.initialThreads.map(c => c !== null ? c : palette[0]);
-                return { success: true, initialThreads: finalStart, knots: solution.finalKnots, method: "Идеальный раппорт", isSeamless: true };
-            } else if (bestFallback !== null) {
-                // 2. Идеальный не нашли (или таймаут), отдаем рабочее решение из заначки
-                let finalStart = bestFallback.initialThreads.map(c => c !== null ? c : palette[0]);
-                return { success: true, initialThreads: finalStart, knots: bestFallback.finalKnots, method: "Обычный расчет", isSeamless: false };
-            }
-
-            // 3. Узор физически невозможен (даже не раппортный)
-            return { success: false, reason: "IMPOSSIBLE" };
         }
 
-        // ЭТАП 3: Каскадный Fallback (Добавление выравнивающих рядов)
-        function generateSeamlessPattern(originalMatrix, numThreads, maxPadding = 3) {
-            let result = solveMathFixed(originalMatrix, numThreads);
-            
-            // Если узор сразу сошелся идеально — отдаем
-            if (result.success && result.isSeamless) return { ...result, paddingAdded: 0 };
-            
-            // Если узор рабочий, но нити внизу не сошлись, пытаемся добавить ряды
-            if (result.success && !result.isSeamless) {
-                let bgColor = getMostFrequentColor() || "#ffffff";
-                let currentMatrix = JSON.parse(JSON.stringify(originalMatrix)); 
-
-                for (let pad = 1; pad <= maxPadding; pad++) {
-                    let r = currentMatrix.length;
-                    let maxKnots = Math.floor(numThreads / 2);
-                    let knotsCount = (r % 2 === 0) ? maxKnots : maxKnots - 1;
-                    
-                    currentMatrix.push(new Array(knotsCount).fill(bgColor)); 
-                    
-                    let padResult = solveMathFixed(currentMatrix, numThreads);
-                    // Если с добавленным рядом всё стало идеально — возвращаем
-                    if (padResult.success && padResult.isSeamless) {
-                        rows = currentMatrix.length; // Обновляем глобальную высоту
-                        matrix = currentMatrix;
-                        return { ...padResult, paddingAdded: pad };
-                    }
-                }
-                // Если даже с доп. рядами идеала не вышло, отдаем самый первый рабочий вариант без доп. рядов
-                return { ...result, paddingAdded: 0, warning: "Нити внизу переставлены" };
-            }
-
-            return { success: false, reason: "IMPOSSIBLE" };
-        }
-
-
-
-        // --- ОТРИСОВКА SVG ---
-        const KTYPES = ["FK", "BK", "FKB", "BKF"];
-        function processKnot(leftTh, rightTh, type) {
-            if (type === "EMPTY") return { outColor: null, nL: leftTh, nR: rightTh }; 
-            if (type === "FK")  return { outColor: leftTh.color, nL: rightTh, nR: leftTh };
-            if (type === "BK")  return { outColor: rightTh.color, nL: rightTh, nR: leftTh };
-            if (type === "FKB") return { outColor: leftTh.color, nL: leftTh, nR: rightTh };
-            if (type === "BKF") return { outColor: rightTh.color, nL: leftTh, nR: rightTh };
+        // --- ГЕНЕРАЦИЯ ИТОГОВОЙ SVG ---
+        function startGeneration() {
+            setStatus("Схема готова! Построена по законам прямой кинематики.", "#059669");
+            renderSVG({ threads: [...startThreads], knots: JSON.parse(JSON.stringify(matrix)) });
         }
 
         function renderSVG(solution) {
@@ -598,40 +667,41 @@
             bgLines += `</g>`;
 
             let curTh = solution.threads.map((col, i) => ({ id: i, color: col, x: i * (W/2) + padX, y: padY }));
-            const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЖЗИК";
             
+            let uniqueColors = []; solution.threads.forEach(color => { if (!uniqueColors.includes(color)) uniqueColors.push(color); });
+            let colorToLetter = {}; const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЖЗИК";
+            uniqueColors.forEach((color, idx) => { colorToLetter[color] = ALPHABET[idx]; });
+
             curTh.forEach(th => {
                 nodesGroup += `<circle cx="${th.x}" cy="${th.y}" r="9" fill="${th.color}" stroke="#374151" stroke-width="2"/>`;
-                nodesGroup += `<text x="${th.x}" y="${th.y+4}" font-size="11" font-family="sans-serif" font-weight="bold" fill="${th.color==='#ffffff'||th.color==='#fef0c7'?'#000':'#fff'}" text-anchor="middle">${ALPHABET[th.id]}</text>`;
+                nodesGroup += `<text x="${th.x}" y="${th.y+4}" font-size="11" font-family="sans-serif" font-weight="bold" fill="${th.color==='#ffffff'||th.color==='#ffff00'?'#000':'#fff'}" text-anchor="middle">${colorToLetter[th.color]}</text>`;
             });
 
-            const ARROWS = { "FK": "↘", "BK": "↙", "FKB": "↲", "BKF": "↳" }; 
             let paths = Array.from({length: numThreads}, () => "");
             curTh.forEach((th, i) => paths[th.id] += `M ${th.x} ${th.y} `);
 
             for (let r = 0; r < rows; r++) {
                 let nxtTh = [...curTh]; let sIdx = (r % 2 === 0) ? 0 : 1; let yNode = (r + 1) * H + H/2 + padY/2;
-
                 for (let c = 0; c < matrix[r].length; c++) {
                     let type = solution.knots[r][c];
                     let iL = sIdx + c*2, iR = iL + 1;
                     let xNode = (sIdx * (W/2)) + (c * W) + padX + (W/4);
                     let lT = curTh[iL], rT = curTh[iR];
                     
-                    if (type === "EMPTY") {
-                        paths[lT.id] += `L ${lT.x} ${yNode} `; paths[rT.id] += `L ${rT.x} ${yNode} `;
-                    } else {
-                        paths[lT.id] += `L ${xNode} ${yNode} `; paths[rT.id] += `L ${xNode} ${yNode} `;
-                        let res = processKnot(lT, rT, type);
-                        
-                        // Оборачиваем узел в <g> с классом и типом для взаимодействия
-                            nodesGroup += `<g class="interactive-knot" data-type="${type}">`;
-                        nodesGroup += `<circle cx="${xNode}" cy="${yNode+1}" r="12" fill="#000" opacity="0.15" />`;
-                        nodesGroup += `<circle cx="${xNode}" cy="${yNode}" r="12" fill="${res.outColor}" stroke="#374151" stroke-width="2" />`;
-                        nodesGroup += `<text x="${xNode}" y="${yNode+4}" font-size="12" font-weight="900" fill="${res.outColor==='#ffffff'||res.outColor==='#fef0c7'?'#000':'#fff'}" text-anchor="middle">${ARROWS[type]}</text>`;
-                        nodesGroup += `</g>`;
-                        nxtTh[iL] = res.nL; nxtTh[iL].x = xNode - W/4; nxtTh[iR] = res.nR; nxtTh[iR].x = xNode + W/4;
-                    }
+                    paths[lT.id] += `L ${xNode} ${yNode} `; paths[rT.id] += `L ${xNode} ${yNode} `;
+                    
+                    let outColor = (type==='FK'||type==='FKB') ? lT.color : rT.color;
+                    
+                    nodesGroup += `<g class="interactive-knot" data-type="${type}">`;
+                    nodesGroup += `<circle cx="${xNode}" cy="${yNode+1}" r="12" fill="#000" opacity="0.15" />`;
+                    nodesGroup += `<circle cx="${xNode}" cy="${yNode}" r="12" fill="${outColor}" stroke="#374151" stroke-width="2" />`;
+                    nodesGroup += `<text x="${xNode}" y="${yNode+4}" font-size="12" font-weight="900" fill="${outColor==='#ffffff'||outColor==='#ffff00'?'#000':'#fff'}" text-anchor="middle">${ARROW_SYMBOLS[type]}</text>`;
+                    nodesGroup += `</g>`;
+
+                    if(type==='FK'||type==='BK') { nxtTh[iL] = rT; nxtTh[iR] = lT; }
+                    else { nxtTh[iL] = lT; nxtTh[iR] = rT; }
+                    
+                    nxtTh[iL].x = xNode - W/4; nxtTh[iR].x = xNode + W/4;
                 }
                 curTh = nxtTh;
             }
@@ -640,11 +710,10 @@
             curTh.forEach(th => {
                 paths[th.id] += `L ${th.x} ${bottomY} `;
                 nodesGroup += `<circle cx="${th.x}" cy="${bottomY}" r="9" fill="${th.color}" stroke="#374151" stroke-width="2"/>`;
-                nodesGroup += `<text x="${th.x}" y="${bottomY+4}" font-size="11" font-family="sans-serif" font-weight="bold" fill="${th.color==='#ffffff'||th.color==='#fef0c7'?'#000':'#fff'}" text-anchor="middle">${ALPHABET[th.id]}</text>`;
+                nodesGroup += `<text x="${th.x}" y="${bottomY+4}" font-size="11" font-family="sans-serif" font-weight="bold" fill="${th.color==='#ffffff'||th.color==='#ffff00'?'#000':'#fff'}" text-anchor="middle">${colorToLetter[th.color]}</text>`;
             });
 
             paths.forEach((p, i) => {
-                pathsGroup += `<path class="thread-line bg-line" d="${p}" fill="none" stroke="#000" stroke-width="8" opacity="0.1" stroke-linejoin="round" stroke-linecap="round" />`;
                 pathsGroup += `<path class="thread-line" d="${p}" fill="none" stroke="${solution.threads[i]}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" />`;
             });
 
@@ -654,143 +723,6 @@
             document.getElementById('editor-tools').style.display = 'none'; document.getElementById('editor-colors').style.display = 'none';
         }
 
-        function startGeneration() {
-            const btn = document.getElementById('btn-generate');
-            btn.disabled = true;
-            setStatus("Вычисление пути нитей...", "#2563eb");
-
-            setTimeout(() => {
-                let sol = generateSeamlessPattern(matrix, numThreads, 3); // 3 ряда на выравнивание
-                
-                if (sol.success) {
-                    renderSVG({ threads: sol.initialThreads, knots: sol.knots });
-                    let msg = `Схема готова! (${sol.method}).`;
-                    if (sol.paddingAdded > 0) msg += ` Добавлено выравнивающих рядов: ${sol.paddingAdded}.`;
-                    if (sol.warning) msg += ` Узор сплетен, но раппорт не замкнулся.`;
-                    
-                    setStatus(msg, sol.isSeamless ? "#059669" : "#d97706");
-                } else {
-                    setStatus("Данный узор физически невозможно сплести. Проверьте рисунок.", "#dc2626");
-                }
-                btn.disabled = false;
-            }, 50);
-        }
-        
-        // --- ДАННЫЕ ДЛЯ СЛАЙДШОУ (ЛОКАЛЬНЫЕ ПУТИ) ---
-        const KNOT_TUTORIALS = {
-            "FK": {
-                name: "Правый узел (↘)",
-                url: "how_to_fk.html",
-                images: [
-                    "images/fk1.png",
-                    "images/fk2.png",
-                    "images/fk3.png",
-                    "images/fk4.png",
-                    "images/fk5.png",
-                    "images/fk6.png"
-                ]
-            },
-            "BK": {
-                name: "Левый узел (↙)",
-                url: "how_to_bk.html",
-                images: [
-                    "images/bk1.png",
-                    "images/bk2.png",
-                    "images/bk3.png",
-                    "images/bk4.png",
-                    "images/bk5.png",
-                    "images/bk6.png"
-                ]
-            },
-            "FKB": {
-                name: "Правый-Левый (↲)",
-                url: "how_to_fkb.html",
-                images: [
-                    "images/fbk1.png",
-                    "images/fbk2.png",
-                    "images/fbk3.png",
-                    "images/fbk4.png",
-                    "images/fbk5.png",
-                    "images/fbk6.png"
-                ]
-            },
-            "BKF": {
-                name: "Левый-Правый (↳)",
-                url: "how_to_bkf.html",
-                images: [
-                    "images/bfk1.png",
-                    "images/bfk2.png",
-                    "images/bfk3.png",
-                    "images/bfk4.png",
-                    "images/bfk5.png",
-                    "images/bfk6.png"
-                ]
-            }
-        };  
-
-        let tooltipTimer = null;
-        let slideInterval = null;
-        let currentKnotData = null;
-
-        // Ловим наведение на узел
-        document.body.addEventListener('mouseover', (e) => {
-            let knotGroup = e.target.closest('.interactive-knot');
-            if (knotGroup) {
-                let type = knotGroup.dataset.type;
-                currentKnotData = KNOT_TUTORIALS[type];
-                if(!currentKnotData) return;
-
-                // Задержка перед появлением окна (600 мс)
-                tooltipTimer = setTimeout(() => {
-                    let tooltip = document.getElementById('knot-tooltip');
-                    let rect = knotGroup.getBoundingClientRect();
-                    
-                    // Высчитываем позицию, чтобы окно было ровно над узлом
-                    tooltip.style.left = (rect.left + window.scrollX - 80 + rect.width/2) + 'px';
-                    tooltip.style.top = (rect.top + window.scrollY - 170) + 'px'; 
-                    tooltip.style.display = 'block';
-
-                    document.getElementById('tooltip-title').innerText = currentKnotData.name;
-                    
-                    // Запуск слайдшоу
-                    let slideIdx = 0;
-                    document.getElementById('tooltip-img').src = currentKnotData.images[slideIdx];
-                    
-                    clearInterval(slideInterval);
-                    slideInterval = setInterval(() => {
-                        slideIdx = (slideIdx + 1) % currentKnotData.images.length;
-                        document.getElementById('tooltip-img').src = currentKnotData.images[slideIdx];
-                    }, 1200); // 1200 мс = 1.2 секунды на каждую картинку
-                }, 600); 
-            }
-        });
-
-        // Скрываем окно, если увели курсор
-        document.body.addEventListener('mouseout', (e) => {
-            let knotGroup = e.target.closest('.interactive-knot');
-            if (knotGroup) {
-                clearTimeout(tooltipTimer);
-                // Проверяем, не перевели ли мы мышку с узла на саму подсказку
-                if (!document.getElementById('knot-tooltip').contains(e.relatedTarget)) hideTooltip();
-            }
-        });
-
-        // Если уводим мышь с самой подсказки - она тоже скрывается
-        document.getElementById('knot-tooltip').addEventListener('mouseleave', hideTooltip);
-
-        // Клик по подсказке переносит на страницу-туториал
-        document.getElementById('knot-tooltip').addEventListener('click', () => {
-            if(currentKnotData && currentKnotData.url) {
-                // Открываем гайд в НОВОЙ вкладке
-                window.open(currentKnotData.url, '_blank'); 
-            }
-        });
-
-        function hideTooltip() {
-            document.getElementById('knot-tooltip').style.display = 'none';
-            clearInterval(slideInterval);
-            currentKnotData = null;
-        }
         window.onload = initGrid;
     </script>
 </body>
